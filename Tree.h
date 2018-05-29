@@ -9,8 +9,11 @@ enum node_type{
 	STRING,
 	SYS_CON,
 	TYPE,
-	EXPR,
 	RANGE,
+	EXPR,
+	FUNC,
+	PROC,
+	REFERENCE,
 	SEQ,
 	EMPTY
 };
@@ -48,7 +51,10 @@ node makeChar(Token const_char);
 node makeString(Token const_string);
 node makeSysCon(Token sys_con);
 
+node linkTypeDecls(node head, node type_dfn);
+node makeTypeDecl(node type_dfn);
 node makeTypeDfn(Token name, node type_decl);
+
 node makeSysType(Token sys_type);
 node makeCustomType(Token custom_type);
 node makeEnumType(node name_list);
@@ -68,5 +74,22 @@ node makeFieldDecl(node name_list, node type);
 node linkVarNodes(node head, node var);
 node makeVarNode(node var_decl);
 node makeVarDecl(node name_list, node type);
+
+node makeProcNode(node proc_decl);
+node linkProcNodes(node head, node proc_decl);
+
+node makeFuncNode(node func_decl);
+node linkFuncNodes(node head, node func_decl);
+
+node makeProcDecl(node head, node sub_routine);
+node makeProcHead(Token id, node parameters);
+
+node makeFuncDecl(node head, node sub_routine);
+node makeFuncHead(Token id, node parameters, node return_type);
+
+node makeRefVarList(node name_list);
+node makeParaDecl(node var_list, node type);
+node makeParaNode(node para_decl);
+node linkParaNodes(node head, node para_decl);
 
 #endif
