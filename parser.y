@@ -37,7 +37,7 @@ const_value: INTEGER                    { $$ = makeInteger($1); }
 type_part: TYPE type_decl_list          { $$ = $2; }
            |                            { $$ = makeEmptyNode(); };
 type_decl_list: type_decl_list type_definition                  { $$ = linkTypeDecls($1, $2); }
-                | type_definition                               { $$ = makeTypeDfn($1); };
+                | type_definition                               { $$ = makeTypeDecl($1); };
 type_definition: NAME EQUAL type_decl SEMI                      { $$ = makeTypeDfn($1, $3); };
 type_decl: simple_type_decl             { $$ = $1; }
          | array_type_decl              { $$ = $1; }
@@ -63,19 +63,25 @@ var_decl_list: var_decl_list var_decl   { $$ = linkVarNodes($1, $2); }
              | var_decl                 { $$ = makeVarNode($1); };   
 var_decl: name_list COLON type_decl SEMI                        { $$ = makeVarDecl($1, $3); };
 
-// routine_head end
+routine_part: routine_part function_decl                        { $$ = linkFuncNodes($1, $2); }
+            | routine_part procedure_decl                       { $$ = linkProcNodes($1, $2); }
+            | function_decl                                     { $$ = makeFuncNode($1); }
+            | procedure_decl                                    { $$ = makeProcNode($1); }
+            |                                                   { $$ = makeEmptyNode(); };
+function_decl: function_head SEMI sub_routine SEMI              { $$ = makeFuncDecl($1, $3); };
+function_head: FUNCTION ID parameters COLON simple_type_decl    { $$ = makeFuncHead($2, $3, $5); };
 
-routine_part: routine_part function_decl | routine_part procedure_decl | function_decl | procedure_decl | 
-function_decl: function_head  SEMI  sub_routine  SEMI
-function_head: FUNCTION  ID  parameters  COLON  simple_type_decl 
-procedure_decl: procedure_head  SEMI  sub_routine  SEMI
-procedure_head: PROCEDURE ID parameters 
-parameters: LP para_decl_list RP |
-para_decl_list ： para_decl_list  SEMI  para_type_list | para_type_list
-para_type_list ： var_para_list COLON  simple_type_decl  
-|  val_para_list  COLON  simple_type_decl
-var_para_list ： VAR  name_list
-val_para_list ： name_list  ;
+procedure_decl: procedure_head SEMI sub_routine SEMI            { $$ = makeProcDecl($1, $3); };
+procedure_head: PROCEDURE ID parameters                         { $$ = makeProcHead($2, $3); };
+
+parameters: LP para_decl_list RP                                { $$ = $2; }
+          |                                                     { $$ = makeEmptyNode(); };
+para_decl_list: para_decl_list SEMI para_type_list              { $$ = linkParaNodes($1, $3); }
+              | para_type_list                                  { $$ = makeParaNode($1); };
+para_type_list: var_para_list COLON simple_type_decl            { $$ = makeParaDecl($1, $2); }
+              |                                                 { $$ = makeEmptyNode(); };
+var_para_list: VAR name_list                                    { $$ = makeRefVarList($2); };
+val_para_list: name_list                                        { $$ = $1; };
 
 routine_body: compound_stmt                     {};
 compound_stmt: BEGIN stmt_list END              {};
