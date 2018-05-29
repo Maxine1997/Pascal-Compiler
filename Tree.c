@@ -66,11 +66,7 @@ node makeConstExpr(Token name, node const_value) {
 }
 
 node linkConstExprs(node head, Token name, node const_value) {
-	node const_expr = (node)malloc(sizeof(struct T_node));
-	const_expr->valtype = EXPR;
-	strcpy(const_expr->nodeval.stringval, name.tokenval.stringval);
-	const_expr->left = const_value;
-	const_expr->right = NULL;
+	node const_expr = makeConstExpr(name, const_value);
 	node ptr = head;
 	while(ptr->right != NULL) {
 		ptr = ptr->right;
@@ -131,6 +127,24 @@ node makeSysCon(Token sys_con) {
 	}
 	const_value->left = const_value->right = NULL;
 	return const_value;
+}
+
+node linkTypeDecls(node head, node type_dfn) {
+	node type_decl = makeTypeDecl(type_dfn);
+	node ptr = head;
+	while(ptr->right != NULL) {
+		ptr = ptr->right;
+	}
+	ptr->right = type_decl;
+	return head;
+}
+
+node makeTypeDecl(node type_dfn) {
+	node type_decl = (node)malloc(sizeof(struct T_node));
+	type_decl->valtype = EXPR;
+	type_decl->left = type_dfn;
+	type_decl->right = NULL;
+	return type_decl;
 }
 
 node makeTypeDfn(Token name, node type_decl) {
@@ -223,11 +237,12 @@ node makeRecordType(node field_list) {
 }
 
 node linkFieldNodes(node head, node field) {
+	node field_node = makeFieldNode(field);
 	node ptr = head;
 	while(ptr->right != NULL) {
 		ptr = ptr->right;
 	}
-	ptr->right = field;
+	ptr->right = field_node;
 	return head;
 }
 
@@ -248,11 +263,12 @@ node makeFieldDecl(node name_list, node type) {
 }
 
 node linkVarNodes(node head, node var) {
+	node var_node = makeVarNode(var);
 	node ptr = head;
 	while(ptr->right != NULL) {
 		ptr = ptr->right;
 	}
-	ptr->right = var;
+	ptr->right = var_node;
 	return head;
 }
 
@@ -266,9 +282,110 @@ node makeVarNode(node var_decl) {
 
 node makeVarDecl(node name_list, node type) {
 	node var_decl = (node)malloc(sizeof(struct T_node));
-	var_decl.valtype = EXPR;
+	var_decl->valtype = EXPR;
 	var_decl->left = name_list;
 	var_decl->right = type;
 	return var_decl;
+}
+
+node makeProcNode(node proc_decl) {
+	node proc_node = (node)malloc(sizeof(struct T_node));
+	proc_node->valtype = PROC;
+	proc_node->left = proc_decl;
+	proc_node->right = NULL;
+	return proc_node;
+}
+
+node linkProcNodes(node head, node proc_decl) {
+	node proc = makeProcNode(proc_decl);
+	node ptr = head;
+	while(ptr->right != NULL) {
+		ptr = ptr->right;
+	}
+	ptr->right = proc;
+	return head;
+}
+
+node makeFuncNode(node func_decl) {
+	node func_node = (node)malloc(sizeof(struct T_node));
+	func_node->valtype = FUNC;
+	func_node->left = func_decl;
+	func_node->right = NULL;
+	return func_node;
+}
+
+node linkFuncNodes(node head, node func_decl) {
+	node func = makeFuncNode(func_decl);
+	node ptr = head;
+	while(ptr->right != NULL) {
+		ptr = ptr->right;
+	}
+	ptr->right = func;
+	return head;
+}
+
+node makeProcDecl(node head, node sub_routine) {
+	node proc = (node)malloc(sizeof(struct T_node));
+	proc->valtype = SEQ;
+	proc->left = head;
+	proc->right = sub_routine;
+	return proc;
+}
+
+node makeProcHead(Token id, node parameters) {
+	node proc_head = (node)malloc(sizeof(struct T_node));
+	proc_head->valtype = SEQ;
+	strcpy(proc_head->nodeval.stringval, id.tokenval.stringval);
+	proc_head->left = parameters;
+	proc_head->right = NULL;
+	return proc_head;
+}
+
+node makeFuncDecl(node head, node sub_routine) {
+	node func = (node)malloc(sizeof(struct T_node));
+	func->valtype = SEQ;
+	func->left = head;
+	func->right = sub_routine;
+	return func;
+}
+
+node makeFuncHead(Token id, node parameters, node return_type) {
+	node func_head = (node)malloc(sizeof(struct T_node));
+	func_head->valtype = SEQ;
+	strcpy(func_head->nodeval.stringval, id.tokenval.stringval);
+	func_head->left = parameters;
+	func_head->right = return_type;
+	return func_head;
+}
+
+node makeRefVarList(node name_list) {
+	name_list->valtype = REFERENCE;
+	return name_list;
+}
+
+node makeParaDecl(node var_list, node type) {
+	node para_decl = (node)malloc(sizeof(struct T_node));
+	para_decl->valtype = EXPR;
+	para_decl->left = var_list;
+	para_decl->right = type;
+	return para_decl;
+}
+
+node makeParaNode(node para_decl) {
+	node para = (node)malloc(sizeof(struct T_node));
+	para->valtype = EXPR;
+	para->left = para_decl;
+	para->right = NULL;
+	return para;
+}
+
+node linkParaNodes(node head, node para_decl) {
+	node para = makeParaNode(para_decl);
+	node ptr = head;
+	while(ptr->right != NULL) {
+		ptr = ptr->right;
+	}
+	ptr->right = para;
+	return head;
 }
 
