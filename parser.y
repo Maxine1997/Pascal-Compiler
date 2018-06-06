@@ -83,45 +83,68 @@ para_type_list: var_para_list COLON simple_type_decl            { $$ = makeParaD
 var_para_list: VAR name_list                                    { $$ = makeRefVarList($2); };
 val_para_list: name_list                                        { $$ = $1; };
 
-routine_body: compound_stmt                     {};
-compound_stmt: BEGIN stmt_list END              {};
-stmt_list: stmt_list stmt SEMI |                {};
-stmt: INTEGER COLON non_label_stmt              {};
-    | non_label_stmt                            {};
-non_label_stmt: assign_stmt                     {};
-              | proc_stmt                       {};
-              | compound_stmt                   {};
-              | if_stmt                         {};
-              | repeat_stmt                     {};
-              | while_stmt                      {};
-              | for_stmt                        {};
-              | case_stmt                       {};
-              | goto_stmt                       {};
-assign_stmt: ID ASSIGN expression               {};
-           | ID LB expression RB ASSIGN expression  {};
-           | ID DOT ID ASSIGN expression        {};
-proc_stmt: ID
-         | ID LP args_list RP
-         | SYS_PROC
-         | SYS_PROC LP expression_list RP
+routine_body: compound_stmt             { $$ = $1; };
+compound_stmt: BEGIN stmt_list END      { $$ = $2; };
+stmt_list: stmt_list stmt SEMI          { $$ =  }
+         |                              { $$ = };
+stmt: INTEGER COLON non_label_stmt      {};
+    | non_label_stmt                    {};
+non_label_stmt: assign_stmt             {};
+              | proc_stmt               {};
+              | compound_stmt           {};
+              | if_stmt                 {};
+              | repeat_stmt             {};
+              | while_stmt              {};
+              | for_stmt                {};
+              | case_stmt               {};
+              | goto_stmt               {};
+assign_stmt: ID ASSIGN expression                               { $$ = simpleVarAssign($1, $3); }
+           | ID LB expression RB ASSIGN expression              { $$ = arrayVarAssign($1, $3, $6); }
+           | ID DOT ID ASSIGN expression                        { $$ = recordVarAssign($1, $3, $5); };
+proc_stmt: ID                                   { $$ = callFunct($1, NULL); }
+         | ID LP args_list RP                   { $$ = callFunct($1, $3); }
+         | SYS_PROC                             { $$ = callSysFunct($1, NULL); }
+         | SYS_PROC LP expression_list RP       { $$ = callSysFunct($1, $3); }
          | READ LP factor RP                    {};
-if_stmt: IF expression THEN stmt else_clause    {};
-else_clause: ELSE stmt |                        {};
-repeat_stmt: REPEAT stmt_list UNTIL expression  {};
-while_stmt: WHILE expression DO stmt            {};
+if_stmt: IF expression THEN stmt else_clause    { $$ = makeIfStmt($2, $4, $5); };
+else_clause: ELSE stmt                          { $$ = $2; }
+           |                                    { $$ = makeEmptyNode(); };
+repeat_stmt: REPEAT stmt_list UNTIL expression  { $$ = makeRepeatStmt($2, $4); };
+while_stmt: WHILE expression DO stmt_list       { $$ = makeWhileStmt($2, $4); };
 for_stmt: FOR ID ASSIGN expression direction expression DO stmt {};
 direction: TO | DOWNTO                          {};
-case_stmt: CASE expression OF case_expr_list END    {};
-case_expr_list: case_expr_list case_expr | case_expr    {};
-case_expr: const_value COLON stmt SEMI          {};
+case_stmt: CASE expression OF case_expr_list END                {};
+case_expr_list: case_expr_list case_expr        {}
+              | case_expr                       {};
+case_expr: const_value COLON stmt SEMI          {}
          | ID COLON stmt SEMI                   {};
 goto_stmt: GOTO INTEGER                         {};
-expression_list: expression_list COMMA expression | expression
-expression: expression GE expr | expression GT expr
-          | expression LE expr | expression LT expr
-          | expression EQUAL expr | expression UNEQUAL expr | expr  {};
-expr: expr PLUS term | expr MINUS term | expr OR term | term        {};
-term: term MUL factor | term DIV factor | term MOD factor | term AND factor | factor    {};
-factor: NAME | NAME LP args_list RP | SYS_FUNCT | SYS_FUNCT LP args_list RP |  const_value  |  LP  expression  RP
-| NOT  factor | MINUS factor | ID LB expression RB | ID DOT ID {};
-args_list: args_list COMMA expression | expression  {};
+expression_list: expression_list COMMA expression               { $$ = linkExprs($1, $3); }
+               | expression                                     { $$ = makeExprNode($1); };
+expression: expression GE expr                  { $$ = binOp2($1, $2, $3); }
+          | expression GT expr                  { $$ = binOp2($1, $2, $3); }
+          | expression LE expr                  { $$ = binOp2($1, $2, $3); }
+          | expression LT expr                  { $$ = binOp2($1, $2, $3); }
+          | expression EQUAL expr               { $$ = binOp2($1, $2, $3); }
+          | expression UNEQUAL expr             { $$ = binOp2($1, $2, $3); }
+          | expr                                { $$ = $1; };
+expr: expr PLUS term                            { $$ = binOp1($1, $2, $3); }
+    | expr MINUS term                           { $$ = binOp1($1, $2, $3); }
+    | expr OR term                              { $$ = binOp1($1, $2, $3); }
+    | term                                      { $$ = $1; };
+term: term MUL factor                           { $$ = binOp1($1, $2, $3); }
+    | term DIV factor                           { $$ = binOp1($1, $2, $3); }
+    | term MOD factor                           { $$ = binOp1($1, $2, $3); }
+    | term AND factor                           { $$ = binOp1($1, $2, $3); }
+    | factor                                    { $$ = $1; };
+factor: NAME                                    { $$ = makeString($1); }
+      | NAME LP args_list RP                    { $$ = callFunct($1, $3); }
+      | SYS_FUNCT LP args_list RP               { $$ = callSysFunct($1, $3); }
+      | const_value                             { $$ = $1; }
+      | LP expression RP                        { $$ = $2; }
+      | NOT factor                              { $$ = unaryOp($1, $2); }
+      | MINUS factor                            { $$ = unaryOp($1, $2); }
+      | ID LB expression RB                     { $$ = makeArrayElement($1, $3); }
+      | ID DOT ID                               { $$ = makeRecdMember($1, $3); };
+args_list: args_list COMMA expression           { $$ = linkExprs($1, $3); }
+         | expression                           { $$ = makeExprNode($1); };
