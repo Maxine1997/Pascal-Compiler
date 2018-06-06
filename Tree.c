@@ -35,25 +35,25 @@ node makeSubRoutine(node routine_head, node routine_body) {
 }
 
 node makeRoutineHead(node label_part) {
-    node routine_head = (node)malloc(sizeof(struct T_node));
-    routine_head->valtype = SEQ;
-    routine_head->left = NULL;
-    routine_head->right = label_part;
-    return routine_head;
+	node routine_head = (node)malloc(sizeof(struct T_node));
+	routine_head->valtype = SEQ;
+	routine_head->left = NULL;
+	routine_head->right = label_part;
+	return routine_head;
 }
 
 void linkNodes(node n1, node n2) {
-    n1->right = n2;
-    n2->right = NULL;
-    return;
+	n1->right = n2;
+	n2->right = NULL;
+	return;
 }
 
 node makeEmptyNode() {
-    node label_part = (node)malloc(sizeof(struct T_node));
-    label_part->valtype = EMPTY;
-    label_part->left = NULL;
-    label_part->right = NULL;
-    return label_part;
+	node label_part = (node)malloc(sizeof(struct T_node));
+	label_part->valtype = EMPTY;
+	label_part->left = NULL;
+	label_part->right = NULL;
+	return label_part;
 }
 
 node makeConstExpr(Token name, node const_value) {
@@ -68,7 +68,7 @@ node makeConstExpr(Token name, node const_value) {
 node linkConstExprs(node head, Token name, node const_value) {
 	node const_expr = makeConstExpr(name, const_value);
 	node ptr = head;
-	while(ptr->right != NULL) {
+	while (ptr->right != NULL) {
 		ptr = ptr->right;
 	}
 	ptr->right = const_expr;
@@ -132,7 +132,7 @@ node makeSysCon(Token sys_con) {
 node linkTypeDecls(node head, node type_dfn) {
 	node type_decl = makeTypeDecl(type_dfn);
 	node ptr = head;
-	while(ptr->right != NULL) {
+	while (ptr->right != NULL) {
 		ptr = ptr->right;
 	}
 	ptr->right = type_decl;
@@ -239,7 +239,7 @@ node makeRecordType(node field_list) {
 node linkFieldNodes(node head, node field) {
 	node field_node = makeFieldNode(field);
 	node ptr = head;
-	while(ptr->right != NULL) {
+	while (ptr->right != NULL) {
 		ptr = ptr->right;
 	}
 	ptr->right = field_node;
@@ -265,7 +265,7 @@ node makeFieldDecl(node name_list, node type) {
 node linkVarNodes(node head, node var) {
 	node var_node = makeVarNode(var);
 	node ptr = head;
-	while(ptr->right != NULL) {
+	while (ptr->right != NULL) {
 		ptr = ptr->right;
 	}
 	ptr->right = var_node;
@@ -299,7 +299,7 @@ node makeProcNode(node proc_decl) {
 node linkProcNodes(node head, node proc_decl) {
 	node proc = makeProcNode(proc_decl);
 	node ptr = head;
-	while(ptr->right != NULL) {
+	while (ptr->right != NULL) {
 		ptr = ptr->right;
 	}
 	ptr->right = proc;
@@ -317,7 +317,7 @@ node makeFuncNode(node func_decl) {
 node linkFuncNodes(node head, node func_decl) {
 	node func = makeFuncNode(func_decl);
 	node ptr = head;
-	while(ptr->right != NULL) {
+	while (ptr->right != NULL) {
 		ptr = ptr->right;
 	}
 	ptr->right = func;
@@ -382,10 +382,176 @@ node makeParaNode(node para_decl) {
 node linkParaNodes(node head, node para_decl) {
 	node para = makeParaNode(para_decl);
 	node ptr = head;
-	while(ptr->right != NULL) {
+	while (ptr->right != NULL) {
 		ptr = ptr->right;
 	}
 	ptr->right = para;
 	return head;
+}
+
+node binOp1(node operand1, Token oper, node operand2) {
+	node op = (node)malloc(sizeof(struct T_node));
+	op->valtype = OP;
+	switch (oper.tokenval.resv) {
+	case PLUS:
+		op->nodeval.intval = 1;
+		break;
+	case MINUS:
+		op->nodeval.intval = 2;
+		break;
+	case MUL:
+		op->nodeval.intval = 3;
+		break;
+	case DIV:
+		op->nodeval.intval = 4;
+		break;
+	case MOD:
+		op->nodeval.intval = 5;
+		break;
+	case AND:
+		op->nodeval.intval = 6;
+		break;
+	case OR:
+		op->nodeval.intval = 7;
+		break;
+	default:
+		break;
+	}
+	op->left = operand1;
+	op->right = operand2;
+	return op;
+}
+
+node binOp2(node operand1, Token oper, node operand2) {
+	node op = (node)malloc(sizeof(struct T_node));
+	op->valtype = OP;
+	switch (oper.tokenval.deli) {
+	case GE:
+		op->nodeval.intval = 1;
+		break;
+	case GT:
+		op->nodeval.intval = 2;
+		break;
+	case LE:
+		op->nodeval.intval = 3;
+		break;
+	case LT:
+		op->nodeval.intval = 4;
+		break;
+	case EQUAL:
+		op->nodeval.intval = 5;
+		break;
+	case UNEQUAL:
+		op->nodeval.intval = 6;
+		break;
+	default:
+		break;
+	}
+	op->left = operand1;
+	op->right = operand2;
+	return op;
+}
+
+node unaryOp(Token unary_op, node factor) {
+	node op = (node)malloc(sizeof(struct T_node));
+	op->valtype = UNARY_OP;
+	switch (unary_op.tokenval.resv) {
+	case MINUS:
+		op->nodeval.intval = 1;
+		break;
+	case NOT:
+		op->nodeval.intval = 2;
+		break;
+	default:
+		break;
+	}
+	op->left = factor;
+	op->right = NULL;
+	return op;
+}
+
+node callFunct(Token funct, node args_list) {
+	node call_funct = (node)malloc(sizeof(struct T_node));
+	call_funct->valtype = FUNC;
+	strcpy(call_funct->nodeval.stringval, funct.tokenval.stringval);
+	call_funct->left = args_list;
+	call_funct->right = NULL;
+	return call_funct;
+}
+
+node callSysFunct(Token sys_funct, node args_list) {
+	node call_funct = (node)malloc(sizeof(struct T_node));
+	call_funct->valtype = SYS_FUNC;
+	strcpy(call_funct->nodeval.stringval, sys_funct.tokenval.stringval);
+	call_funct->left = args_list;
+	call_funct->right = NULL;
+	return call_funct;
+}
+
+node makeArrayElement(Token id, node index) {
+	node element = (node)malloc(sizeof(struct T_node));
+	element->valtype = ARRAY;
+	strcpy(element->nodeval.stringval, id.tokenval.stringval);
+	element->left = index;
+	element->right = NULL;
+	return element;
+}
+
+node makeRecdMember(Token recd_id, Token mem_id) {
+	node member = (node)malloc(sizeof(struct T_node));
+	member->valtype = STRING;
+	strcpy(member->nodeval.stringval, mem_id.tokenval.stringval);
+	member->left = member->right = NULL;
+	node record = (node)malloc(sizeof(struct T_node));
+	record->valtype = RECORD;
+	strcpy(record->nodeval.stringval, recd_id.tokenval.stringval);
+	record->left = member;
+	record->right = NULL;
+	return record;
+}
+
+node linkExprs(node head, node expr) {
+	node expr_node = makeExprNode(expr);
+	node ptr = head;
+	while (ptr->right != NULL) {
+		ptr = ptr->right;
+	}
+	ptr->right = expr_node;
+	return head;
+}
+
+node makeExprNode(node expr) {
+	node expr_node = (node)malloc(sizeof(struct T_node));
+	expr_node->valtype = EXPR;
+	expr_node->left = expr;
+	expr_node->right = NULL;
+	return expr_node;
+}
+
+node simpleVarAssign(Token id, node expr) {
+	node simple_var = makeString(id);
+	node stmt = (node)malloc(sizeof(struct T_node));
+	stmt->valtype = ASSIGN;
+	stmt->left = simple_var;
+	stmt->right = expr;
+	return stmt;
+}
+
+node arrayVarAssign(Token array_id, node index, node expr) {
+	node array_var = makeArrayElement(array_id, index);
+	node stmt = (node)malloc(sizeof(struct T_node));
+	stmt->valtype = ASSIGN;
+	stmt->left = array_var;
+	stmt->right = expr;
+	return stmt;
+}
+
+node recordVarAssign(Token record_id, Token member, node expr) {
+	node record_var = makeRecdMember(record_id, member);
+	node stmt = (node)malloc(sizeof(struct T_node));
+	stmt->valtype = ASSIGN;
+	stmt->left = record_var;
+	stmt->right = expr;
+	return stmt;
 }
 
