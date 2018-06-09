@@ -555,3 +555,118 @@ node recordVarAssign(Token record_id, Token member, node expr) {
 	return stmt;
 }
 
+node makeIfStmt(node cond, node then, node else_clause) {
+	node if_clause = (node)malloc(sizeof(struct T_node));
+	if_clause->valtype = EXPR;
+	if_clause->left = cond;
+	if_clause->right = then;
+	node stmt = (node)malloc(sizeof(struct T_node));
+	stmt->valtype = IF;
+	stmt->left = if_clause;
+	stmt->right = else_clause;
+	return stmt;
+}
+
+node makeRepeatStmt(node stmt_list, node cond) {
+	node stmt = (node)malloc(sizeof(struct T_node));
+	stmt->valtype = REPEAT;
+	stmt->left = stmt_list;
+	stmt->right = cond;
+	return stmt;
+}
+
+node makeWhileStmt(node cond, node stmt) {
+	node while_stmt = (node)malloc(sizeof(struct T_node));
+	stmt->valtype = WHILE;
+	while_stmt->left = cond;
+	while_stmt->right = stmt;
+	return while_stmt;
+}
+
+node makeForStmt(Token id, node init_value, node dir, node end_value, node stmt) {
+	node for_stmt = (node)malloc(sizeof(struct T_node));
+	for_stmt->valtype = FOR;
+	strcpy(for_stmt->nodeval.stringval, id.tokenval.stringval);
+	node cond = (node)malloc(sizeof(struct T_node));
+	cond->valtype = EXPR;
+	cond->nodeval.intval = dir->nodeval.intval;
+	cond->left = init_value;
+	cond->right = end_value;
+	for_stmt->left = cond;
+	for_stmt->right = stmt;
+	return for_stmt;
+}
+
+node makeDirNode(Token dir) {
+	node dir_node = (node)malloc(sizeof(struct T_node));
+	dir_node->valtype = INTEGER;
+	switch (dir.tokenval.resv) {
+	case TO:
+		dir_node->nodeval.intval = 0;
+		break;
+	case DOWNTO:
+		dir_node->nodeval.intval = 1;
+		break;
+	default:
+		break;
+	}
+	dir_node->left = dir_node->right = NULL;
+	return dir_node;
+}
+
+node makeCaseStmt(node expr, node case_expr_list) {
+	node case_stmt = (node)malloc(sizeof(struct T_node));
+	case_stmt->valtype = CASE;
+	case_stmt->left = expr;
+	case_stmt->right = case_expr_list;
+	return case_stmt;
+}
+
+node makeCaseExpr1(node value, node stmt) {
+	node case_expr = (node)malloc(sizeof(struct T_node));
+	case_expr->valtype = EXPR;
+	case_expr->left = value;
+	case_expr->right = stmt;
+	return case_expr;
+}
+
+node makeCaseExpr2(Token id, node stmt) {
+	node value = makeString(id);
+	node case_expr = (node)malloc(sizeof(struct T_node));
+	case_expr->valtype = EXPR;
+	case_expr->left = value;
+	case_expr->right = stmt;
+	return case_expr;
+}
+
+node makeGotoStmt(Token label) {
+	node stmt = makeInteger(label);
+	stmt->valtype = GOTO;
+	return stmt;
+}
+
+node makeNonLabelStmt(node stmt) {
+	node non_label_stmt = (node)malloc(sizeof(struct T_node));
+	non_label_stmt->valtype = STMT;
+	non_label_stmt->nodeval.intval = 0;
+	non_label_stmt->left = stmt;
+	non_label_stmt->right = NULL;
+	return non_label_stmt;
+}
+
+node makeLabelStmt(Token label, node stmt) {
+	node label_stmt = makeNonLabelStmt(stmt);
+	label_stmt->nodeval.intval = label.tokenval.intval;
+	return label_stmt;
+}
+
+node linkStmts(node head, node stmt) {
+	if (head == NULL)
+		return stmt;
+	node ptr = head;
+	while (ptr->right != NULL) {
+		ptr = ptr->right;
+	}
+	ptr->right = stmt;
+	return head;
+}
