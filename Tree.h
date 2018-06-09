@@ -2,7 +2,7 @@
 #define TREE_H
 #include "Token.h"
 
-enum node_type {
+enum node_type{
 	INTEGER,
 	REAL,
 	CHAR,
@@ -16,6 +16,13 @@ enum node_type {
 	UNARY_OP,
 	EXPR,
 	ASSIGN,
+	IF,
+	REPEAT,
+	WHILE,
+	FOR,
+	CASE,
+	GOTO,
+	STMT,
 	SYS_FUNC,
 	FUNC,
 	PROC,
@@ -115,6 +122,24 @@ node simpleVarAssign(Token id, node expr);
 node arrayVarAssign(Token array_id, node index, node expr);
 node recordVarAssign(Token record_id, Token member, node expr);
 
+node makeIfStmt(node cond, node then, node else_clause);
 
+node makeRepeatStmt(node stmt_list, node cond);
+
+node makeWhileStmt(node cond, node stmt);
+
+node makeForStmt(Token id, node init_value, node dir, node end_value, node stmt);
+node makeDirNode(Token dir);
+
+node makeCaseStmt(node expr, node case_expr_list);
+node makeCaseExpr1(node value, node stmt);
+node makeCaseExpr2(Token id, node stmt);
+
+node makeGotoStmt(Token label);
+
+node makeNonLabelStmt(node stmt);
+node makeLabelStmt(Token label, node stmt);
+
+node linkStmts(node head, node stmt);
 
 #endif
